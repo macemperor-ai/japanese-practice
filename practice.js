@@ -1,49 +1,8 @@
-const KEY='jpLearningV03';
-let P=new URLSearchParams(location.search),cat=P.get('cat')||'rental',mode=P.get('mode')||'listen',smart=P.get('smart')==='1',D,A=[],i=0,current=null,$=s=>document.querySelector(s);
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
-function save(S){localStorage.setItem(KEY,JSON.stringify(S))}
-function key(q){return q.id.split('-')[0]+'|'+q.intent}
-function stat(q){let S=load();return S[key(q)]||{attempts:0,correct:0,streak:0,level:0,last:0,due:0}}
-function update(q,correct){
- let S=load(),k=key(q),x=S[k]||{attempts:0,correct:0,streak:0,level:0,last:0,due:0};
- x.attempts++; x.last=Date.now();
- if(correct){x.correct++;x.streak++; if(x.streak>=2)x.level=Math.min(5,(x.level||0)+1)}
- else{x.streak=0;x.level=Math.max(0,(x.level||0)-1)}
- let gaps=[0,10*60e3,24*3600e3,3*24*3600e3,7*24*3600e3,14*24*3600e3];
- x.due=Date.now()+gaps[x.level||0]; S[k]=x;save(S);return x
-}
-function weight(q){
- let x=stat(q),now=Date.now(),w=1;
- if(!x.attempts) w+=5;                 // 沒看過：優先建立接觸
- if(x.attempts && x.correct/x.attempts<.65) w+=9; // 常錯：強力轟炸
- if(x.level<=1 && x.attempts) w+=6;
- if(x.due && x.due<=now) w+=7;          // 到期複習
- w+=Math.max(0,4-(x.level||0));          // 越不熟權重越高
- return w
-}
-function pick(){
- let pool=cat==='all'?Object.values(D.items).flat():D.items[cat], candidates=[];
- pool.forEach(q=>{let w=smart?weight(q):1;for(let j=0;j<w;j++)candidates.push(q)});
- let q=candidates[Math.floor(Math.random()*candidates.length)];
- if(current && candidates.length>1 && key(q)===key(current)){q=candidates[Math.floor(Math.random()*candidates.length)]}
- return q
-}
-function say(t,r=1){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=r;speechSynthesis.speak(u)}
-function sh(a){return a.sort(()=>Math.random()-.5)}
-fetch('content.json').then(r=>r.json()).then(x=>{D=x;let nm=cat==='all'?['🧠','今日複習']:D.names[cat];title.textContent=nm.join(' ')+'｜'+(mode==='speak'?'聽力＋口說':'聽力');render()});
-function render(){
- current=pick();let q=current,x=stat(q);i++;
- prog.textContent=`第 ${i} 題｜熟悉度 ${'●'.repeat(x.level||0)}${'○'.repeat(5-(x.level||0))}`;
- ja.textContent=q.ja;zh.textContent=q.zh;text.classList.add('hidden');speak.classList.toggle('hidden',mode!=='speak');heard.textContent='辨識結果會顯示在這裡';sampleText.textContent=q.answer;sampleText.classList.add('hidden');fb.innerHTML='';
- let pool=(cat==='all'?Object.values(D.items).flat():D.items[cat]).filter(x=>x.zh!==q.zh), o=sh([q.zh,...sh(pool).slice(0,3).map(x=>x.zh)]);
- choices.innerHTML=o.map(x=>`<button class=choice>${x}</button>`).join('');
- document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
-   document.querySelectorAll('.choice').forEach(x=>x.disabled=true);
-   let ok=b.textContent===q.zh,ns=update(q,ok);
-   if(ok){b.classList.add('ok');fb.innerHTML=`<div class=good>✓ 聽懂了｜熟悉度 ${ns.level}/5</div>`}
-   else{b.classList.add('bad');fb.innerHTML=`<div class=warn>✗ 這類句型會提高出題頻率。再聽一次抓關鍵詞。</div>`}
- });
- setTimeout(()=>say(q.ja),250)
-}
-play.onclick=again.onclick=()=>say(current.ja);slow.onclick=()=>say(current.ja,.72);reveal.onclick=()=>text.classList.toggle('hidden');sample.onclick=()=>sampleText.classList.toggle('hidden');next.onclick=render;
-mic.onclick=()=>{let S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S){heard.textContent='此瀏覽器未提供網頁語音辨識';return}let r=new S();r.lang='ja-JP';r.onresult=e=>{let t=e.results[0][0].transcript;heard.textContent='你說的是：'+t};r.onerror=e=>heard.textContent='辨識失敗：'+e.error;r.start()}
+const KEY='jpRentalLearningV04';let P=new URLSearchParams(location.search),chapter=P.get('chapter')||'airport',mode=P.get('mode')||'listen',smart=P.get('smart')==='1',phone=P.get('phone')==='1',D,current,count=0,signals={},answered=false;
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}function save(S){localStorage.setItem(KEY,JSON.stringify(S))}function k(q){return q.chapter+'|'+q.intent}function st(q){let S=load();return S[k(q)]||{attempts:0,correct:0,wrong:0,replays:0,slow:0,reveals:0,mastery:0,last:0,due:0}}function interval(m){if(m>=85)return 14*864e5;if(m>=70)return 7*864e5;if(m>=55)return 3*864e5;if(m>=40)return 864e5;if(m>=20)return 10*60e3;return 0}
+function record(q,ok){let S=load(),x=S[k(q)]||{attempts:0,correct:0,wrong:0,replays:0,slow:0,reveals:0,mastery:0,last:0,due:0};x.attempts++;x.last=Date.now();x.replays+=signals.replays||0;x.slow+=signals.slow||0;x.reveals+=signals.revealed?1:0;if(ok)x.correct++;else x.wrong++;let quality=ok?1:0;if(ok){quality-=Math.min(.55,(signals.replays||0)*.18);if(signals.slow)quality-=.22;if(signals.revealed)quality-=.38;quality=Math.max(.08,quality);x.mastery=Math.min(100,(x.mastery||0)+12*quality)}else{x.mastery=Math.max(0,(x.mastery||0)-10)}x.due=Date.now()+interval(x.mastery||0);S[k(q)]=x;save(S);return{x,quality}}
+function weight(q){let x=st(q),w=2,now=Date.now();if(!x.attempts)w+=7;let acc=x.attempts?x.correct/x.attempts:0;if(x.attempts&&acc<.7)w+=9;if((x.mastery||0)<40&&x.attempts)w+=8;if(x.due&&x.due<=now)w+=8;let ar=x.attempts?(x.replays||0)/x.attempts:0;if(ar>=1)w+=Math.min(8,Math.ceil(ar*2));if((x.slow||0)>0)w+=3;if((x.reveals||0)>0)w+=3;return w}
+function pool(){let a=D.items;return chapter==='all'?a:a.filter(q=>q.chapter===chapter)}function pick(){let a=pool(),bag=[];a.forEach(q=>{let w=smart?weight(q):1;for(let i=0;i<w;i++)bag.push(q)});let q=bag[Math.floor(Math.random()*bag.length)];if(current&&bag.length>1&&k(q)===k(current))q=bag[Math.floor(Math.random()*bag.length)];return q}
+function say(t,r=1){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=r;speechSynthesis.speak(u)}function sh(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}function chap(id){return D.chapters.find(c=>c.id===id)}function right(q){return q.replies[0]}function distract(q){let c=sh(pool().filter(x=>k(x)!==k(q))),o=[];for(let x of c){let r=right(x);if(r!==right(q)&&!o.includes(r)){o.push(r);if(o.length===3)break}}return o}
+function render(){current=pick();answered=false;signals={replays:0,slow:0,revealed:false};count++;let q=current,x=st(q),c=chap(q.chapter);title.textContent=phone?'📞 機場接駁電話特訓':(mode==='speak'?'聽力＋口說':'聽力＋選回答');prog.textContent=`第 ${count} 題｜熟悉度 ${Math.round(x.mastery||0)}/100`;chapterName.textContent=`${c.icon} ${c.name}｜${q.intent}`;speaker.textContent=phone?'電話中的租車公司店員':'店員／對方';ja.textContent=q.ja;meaning.textContent='對方意思：'+q.meaning;keys.textContent='關鍵詞：'+q.keywords.join('・');text.classList.add('hidden');feedback.innerHTML='';replayCount.textContent='0';speakBox.classList.toggle('hidden',mode!=='speak');heard.textContent='辨識結果會顯示在這裡';sampleText.textContent=q.replies.join(' ／ ');sampleText.classList.add('hidden');let opts=sh([right(q),...distract(q)]);choices.innerHTML=opts.map(x=>`<button class=choice>${x}</button>`).join('');document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{if(answered)return;answered=true;document.querySelectorAll('.choice').forEach(x=>x.disabled=true);let ok=b.textContent===right(q),res=record(q,ok);if(ok){b.classList.add('ok');let lab=res.quality>=.85?'一次就聽懂，很熟！':res.quality>=.55?'答對，但系統會把重播／提示算進去。':'雖然答對，但需要較多協助，這題仍會加強複習。';feedback.innerHTML=`<div class=good>✓ ${lab}</div>`}else{b.classList.add('bad');let rr=[...document.querySelectorAll('.choice')].find(x=>x.textContent===right(q));if(rr)rr.classList.add('right');feedback.innerHTML=`<div class=warn>✗ 最適合回答：<b>${right(q)}</b><br>這個核心句型之後會提高出題頻率。</div>`}metrics.textContent=`熟悉度 ${Math.round(res.x.mastery||0)}/100｜平均重播 ${res.x.attempts?((res.x.replays||0)/res.x.attempts).toFixed(1):'0.0'} 次｜作答 ${res.x.attempts||0} 次`});metrics.textContent=`熟悉度 ${Math.round(x.mastery||0)}/100｜平均重播 ${x.attempts?((x.replays||0)/x.attempts).toFixed(1):'0.0'} 次｜作答 ${x.attempts||0} 次`;setTimeout(()=>say(q.ja),350)}
+play.onclick=()=>say(current.ja);again.onclick=()=>{signals.replays++;replayCount.textContent=signals.replays;say(current.ja)};slow.onclick=()=>{signals.slow++;say(current.ja,.72)};reveal.onclick=()=>{signals.revealed=true;text.classList.toggle('hidden')};sample.onclick=()=>sampleText.classList.toggle('hidden');next.onclick=render;mic.onclick=()=>{let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){heard.textContent='此瀏覽器未提供網頁語音辨識';return}let r=new SR();r.lang='ja-JP';r.onresult=e=>heard.textContent='你說的是：'+e.results[0][0].transcript;r.onerror=e=>heard.textContent='辨識失敗：'+e.error;r.start()};fetch('rental_content.json').then(r=>r.json()).then(x=>{D=x;render()});
