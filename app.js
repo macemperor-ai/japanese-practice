@@ -1,1 +1,14 @@
-let L=[],i=0,mode=new URLSearchParams(location.search).get('mode')||'listen';const $=s=>document.querySelector(s);async function init(){L=await(await fetch('lessons.json')).json();$('#title').textContent=mode==='speak'?'Level 2｜聽力＋口說':'Level 1｜純聽力';render()}function say(t,r=1){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=r;let v=speechSynthesis.getVoices().find(x=>x.lang&&x.lang.toLowerCase().startsWith('ja'));if(v)u.voice=v;speechSynthesis.speak(u)}function render(){let q=L[i];$('#prog').textContent=(i+1)+' / '+L.length;$('#ja').textContent=q.ja;$('#zh').textContent=q.zh;$('#ans').classList.add('hidden');$('#speak').classList.toggle('hidden',mode!=='speak');$('#heard').textContent='辨識結果會顯示在這裡';$('#sampleText').textContent=q.answers.join(' ／ ');$('#sampleText').classList.add('hidden');setTimeout(()=>say(q.ja),300)}$('#play').onclick=$('#again').onclick=()=>say(L[i].ja);$('#slow').onclick=()=>say(L[i].ja,.72);$('#reveal').onclick=()=>$('#ans').classList.toggle('hidden');$('#sample').onclick=()=>$('#sampleText').classList.toggle('hidden');$('#prev').onclick=()=>{i=(i+L.length-1)%L.length;render()};$('#next').onclick=()=>{i=(i+1)%L.length;render()};$('#mic').onclick=()=>{let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#heard').textContent='此瀏覽器未提供網頁語音辨識，請用 Android Chrome 測試。';return}let r=new SR();r.lang='ja-JP';r.interimResults=false;$('#mic').textContent='🔴 請說日語…';r.onresult=e=>{$('#heard').textContent='你說的是：'+e.results[0][0].transcript};r.onerror=e=>{$('#heard').textContent='辨識失敗：'+e.error};r.onend=()=>$('#mic').textContent='🎙️ 再說一次';r.start()};init();
+const KEY='jpLearningV03';
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
+function say(t){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';speechSynthesis.speak(u)}
+function summary(D){
+ let S=load(),vals=Object.values(S),attempts=vals.reduce((a,x)=>a+(x.attempts||0),0),ok=vals.reduce((a,x)=>a+(x.correct||0),0);
+ let weak=vals.filter(x=>(x.level||0)<=1&&(x.attempts||0)>0).length;
+ stats.innerHTML=`<div class=stat><b>${attempts}</b><small>累計作答</small></div><div class=stat><b>${attempts?Math.round(ok/attempts*100):0}%</b><small>正確率</small></div><div class=stat><b>${weak}</b><small>待加強句型</small></div>`;
+}
+fetch('content.json').then(r=>r.json()).then(D=>{
+ summary(D);
+ cats.innerHTML=Object.entries(D.names).map(([k,n])=>`<section class=card><h2>${n[0]} ${n[1]}</h2><p>500 個練習位置｜會依熟悉度調整出題</p><div class=words>${D.keywords[k].map(x=>{let [j,z]=x.split('|');return `<button onclick="say('${j}')"><b>${j}</b><small>${z}</small> 🔊</button>`}).join('')}</div><a href="practice.html?cat=${k}&mode=listen&smart=1">🧠 智慧聽力</a><a href="practice.html?cat=${k}&mode=speak&smart=1">🎙️ 智慧口說</a></section>`).join('');
+ reset.onclick=()=>{if(confirm('確定要清除所有學習紀錄嗎？')){localStorage.removeItem(KEY);summary(D)}}
+});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
