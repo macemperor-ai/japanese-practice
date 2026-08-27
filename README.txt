@@ -1,0 +1,1 @@
+V0.1：租車取車10組。Level 1純聽力；Level 2聽力＋Android Chrome日語語音辨識。部署方式同前面的GitHub Pages。
