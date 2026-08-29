@@ -3,3 +3,9 @@
 .questionAudio{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #d0d5dd;background:#f9fafb;border-radius:14px;padding:14px;font-size:20px;font-weight:800;text-align:left}
 .jlptChoices{display:grid;gap:8px;margin-top:10px}.jlptChoices .choice{display:grid;grid-template-columns:34px 1fr 34px;align-items:center;gap:9px}
 .num{width:30px;height:30px;border-radius:50%;background:#f2f4f7;display:grid;place-items:center;font-weight:800}.speakerIcon{text-align:center}.opt{font-size:18px}
+
+.meaningChoices{display:grid;gap:10px;margin-top:10px}
+.meaningChoice{display:grid;grid-template-columns:34px 1fr;align-items:start;gap:10px;text-align:left;padding:14px;border:1px solid #d0d5dd;border-radius:14px;background:#fff;font-size:16px;line-height:1.55}
+.meaningChoice:disabled{opacity:1}
+.meaningChoice.ok,.meaningChoice.right{border-color:#12b76a;background:#ecfdf3}
+.meaningChoice.bad{border-color:#f04438;background:#fef3f2}

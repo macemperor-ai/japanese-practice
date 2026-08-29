@@ -1,20 +1,20 @@
 <!doctype html><html lang="zh-Hant"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="style.css">
-<title>JLPT式租車聽解</title></head><body>
+<title>租車日語細節聽力</title></head><body>
 <header><button onclick="location.href='index.html'">←</button><div><b id="title"></b><small id="prog"></small></div></header>
 <main class="practice"><div class="chip" id="chapterName"></div>
 
 <section class="phone">
-<div class="step">① 情境音檔</div><button id="playScene" class="play">▶</button>
-<p>先聽完整句子，不看文字。</p>
+<div class="step">① 只聽日文情境</div>
+<button id="playScene" class="play">▶</button>
+<p>先不要看原句。完整聽完後，從下面 4 個中文意思選出最符合的一個。</p>
 <div class="controls"><button id="slow">🐢 慢速</button><button id="again">↻ 重播 <span id="replayCount">0</span></button></div>
 </section>
 
 <section class="card questionCard">
-<div class="step dark">② 問題</div>
-<button id="questionBtn" class="questionAudio" type="button"><span id="questionText"></span><span>🔊</span></button>
-<p class="hint">聽問題後，從 1～4 選一個最適合的答案。</p>
-<div id="choices" class="jlptChoices"></div>
+<div class="step dark">② 對方剛剛在說什麼？</div>
+<p class="hint">其他選項會故意改掉關鍵細節。</p>
+<div id="choices" class="meaningChoices"></div>
 <div id="feedback"></div>
 </section>
 
