@@ -1,1 +1,34 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="style.css"><title>租車日語練習</title></head><body><header><button onclick="location.href='index.html'">←</button><div><b id="title"></b><small id="prog"></small></div></header><main class="practice"><div class="chip" id="chapterName"></div><section class="phone"><div id="speaker">店員／對方</div><button id="play" class="play">▶</button><p>先不要看文字，只用耳朵抓「對方到底說了什麼」。</p><div class="controls"><button id="slow">🐢 慢速</button><button id="again">↻ 重播 <span id="replayCount">0</span></button></div></section><section class="card"><b>對方在說什麼？</b><p class="hint">注意樓層、左右、出口、時間、人數等細節；選項可能只差一個關鍵資訊。</p><div id="choices"></div><div id="feedback"></div><button id="reveal" class="wide">👀 看原句與拆解</button><div id="text" class="hidden"><button id="sentenceBtn" class="speakSentence" type="button"><span class="ja" id="ja"></span><span>🔊</span></button><div class="zh" id="meaning"></div><div class="breakTitle">點一下個別單字／片語聽發音：</div><div id="chunks" class="chunks"></div></div></section><section id="speakBox" class="card hidden"><b>進階：聽懂後自己回答</b><p>參考回答也都可以直接點擊播放。</p><button id="mic" class="mic">🎙️ 開始說話</button><div id="heard">辨識結果會顯示在這裡</div><div id="replyButtons" class="replyButtons"></div></section><div class="metrics" id="metrics"></div><button id="next" class="next">下一題 →</button></main><script src="practice.js"></script></body></html>
+<!doctype html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="style.css">
+<title>JLPT式租車聽解</title></head><body>
+<header><button onclick="location.href='index.html'">←</button><div><b id="title"></b><small id="prog"></small></div></header>
+<main class="practice"><div class="chip" id="chapterName"></div>
+
+<section class="phone">
+<div class="step">① 情境音檔</div><button id="playScene" class="play">▶</button>
+<p>先聽完整句子，不看文字。</p>
+<div class="controls"><button id="slow">🐢 慢速</button><button id="again">↻ 重播 <span id="replayCount">0</span></button></div>
+</section>
+
+<section class="card questionCard">
+<div class="step dark">② 問題</div>
+<button id="questionBtn" class="questionAudio" type="button"><span id="questionText"></span><span>🔊</span></button>
+<p class="hint">聽問題後，從 1～4 選一個最適合的答案。</p>
+<div id="choices" class="jlptChoices"></div>
+<div id="feedback"></div>
+</section>
+
+<section class="card">
+<button id="reveal" class="wide">👀 作答後看原句與拆解</button>
+<div id="text" class="hidden">
+<button id="sentenceBtn" class="speakSentence" type="button"><span class="ja" id="ja"></span><span>🔊</span></button>
+<div class="zh" id="meaning"></div>
+<div class="breakTitle">個別單字／片語：</div><div id="chunks" class="chunks"></div>
+</div></section>
+
+<section id="speakBox" class="card hidden"><b>進階：自己回答店員</b>
+<button id="mic" class="mic">🎙️ 開始說話</button><div id="heard">辨識結果會顯示在這裡</div>
+<div id="replyButtons" class="replyButtons"></div></section>
+
+<div class="metrics" id="metrics"></div><button id="next" class="next">下一題 →</button>
+</main><script src="practice.js"></script></body></html>
